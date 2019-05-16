@@ -1,3 +1,9 @@
+# Soda
+input/
+output/
+.DS_Store
+dpc.db
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
