@@ -4,6 +4,7 @@ output/
 .DS_Store
 dpc.db
 .idea/
+docs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
