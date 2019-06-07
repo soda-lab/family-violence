@@ -174,7 +174,7 @@ app.layout = html.Div(children=[
                                 style={
                                     'margin-top': '10px'
                                 },
-                                children='Morrison was elected prime minister again...'
+                                children=''
                             )
                         ]
                     ),
@@ -196,7 +196,7 @@ app.layout = html.Div(children=[
                                 style={
                                     'margin-top': '10px'
                                 },
-                                children='@abc @eft This is a great day la lol asd ???? asdasffdfsfsd'
+                                children=''
                             )
                         ]
                     )
