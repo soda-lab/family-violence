@@ -95,19 +95,21 @@ color_for_year = {
 app = dash.Dash(__name__)
 
 app.layout = html.Div(
-    className='container-fluid',
-    style={'padding-top': '15px', 'margin-top': 'auto'},
+    className='container',
+    style={
+        'padding-top': '15px',
+        'margin-top': 'auto'
+    },
     children=[
         html.Div(
             className='row',
-            style={'height': '97vh'},
             children=[
                 html.Div(
                     className='col-1',
-                    style={'margin-top': '9%'},
                     children=[
                         html.Div(
                             className='btn-group-vertical',
+                            style={'margin-top': '19vh'},
                             children=[
                                 html.Button(
                                     type='button',
@@ -163,7 +165,7 @@ app.layout = html.Div(
                             children=[
                                 html.Div(
                                     className='btn-group btn-group-toggle',
-                                    style={'margin-left': '7.5%'},
+                                    style={'margin-left': '4.8vw'},
                                     children=[
                                         html.Button(
                                             id='btn-line',
@@ -183,12 +185,13 @@ app.layout = html.Div(
                         ),
                         html.Div(
                             className='row',
+                            style={'height': '90vh'},
                             children=[
                                 dcc.Graph(
                                     id='graph',
                                     config=dict(displayModeBar=False),
                                     style={
-                                      'height': '100vh',
+                                      'height': '100%',
                                       'width': '100%'
                                     },
                                     figure={}
@@ -228,11 +231,11 @@ app.layout = html.Div(
                         ),
                         html.Div(
                             className='card text-white bg-primary mb-3',
-                            style={'height': '51vh'},
+                            style={'height': '41vh'},
                             children=[
                                 html.Div(
                                     className='card-header',
-                                    children='Sample Tweets'
+                                    children='Top Tweets'
                                 ),
                                 html.Div(
                                     id='tweets-div',
@@ -271,7 +274,6 @@ comparison_graph = {
     'data': comparison_data,
     'layout': dict(
         title='2014-2018 Comparison',
-        # height='100%',
         xaxis=dict(
             rangeslider=dict(
                 visible=True
@@ -285,7 +287,6 @@ comparison_graph = {
 def get_layout(year):
     return {
         'title': year,
-        # 'height': '100%',
         'font': dict(family='Montserrat'),
         'xaxis': dict(
             rangeselector=dict(
@@ -522,7 +523,7 @@ def update_line_btn(n_clicks_line, n_clicks_bar):
 @app.callback(
     dash.dependencies.Output('date', 'children'),
     [dash.dependencies.Input('graph', 'clickData')])
-def display_click_data(click_data):
+def update_date(click_data):
     if not click_data:
         return ''
     dt = click_data['points'][0]['x']
@@ -532,7 +533,7 @@ def display_click_data(click_data):
 @app.callback(
     dash.dependencies.Output('event-text', 'children'),
     [dash.dependencies.Input('graph', 'clickData')])
-def display_click_data(click_data):
+def update_event(click_data):
     if not click_data:
         return ''
     dt = click_data['points'][0]['x'].replace('-', '')
@@ -545,7 +546,7 @@ def display_click_data(click_data):
 @app.callback(
     dash.dependencies.Output('tweets-div', 'children'),
     [dash.dependencies.Input('graph', 'clickData')])
-def display_click_data(click_data):
+def update_sample_tweets(click_data):
     if not click_data:
         return ''
     dt = click_data['points'][0]['x'].replace('-', '')
