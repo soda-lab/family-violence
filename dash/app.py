@@ -10,8 +10,46 @@ from scipy.ndimage.filters import gaussian_filter1d
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
+month_labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+
+events_df = pd.read_csv('events.csv')
+events_df['date'] = events_df['date'].astype(str)
+events_df.set_index('date', inplace=True)
+
+
+def get_query(dt):
+    year = dt[:4]
+    month = dt[4:6]
+    day = dt[6:]
+    month_label = month_labels[int(month)-1]
+    return 'SELECT text, [extended_tweet.full_text] FROM tweets \
+        WHERE created_at like "%' + str(year) + '" AND \
+        created_at like "%' + month_label + ' ' + day + '%" \
+        ORDER BY retweet_count+reply_count DESC LIMIT 5'
+
 
 conn = sqlite3.connect('dpc.db')
+
+
+sample_tweets = {}
+for date in list(events_df.index):
+    paras = []
+    query = get_query(date)
+    sample_tweets_df = pd.read_sql(query, conn)
+    for i, row in sample_tweets_df.iterrows():
+        text = str(i + 1) + '. '
+        if row['extended_tweet.full_text']:
+            text += row['extended_tweet.full_text']
+        else:
+            text += row['text']
+        text = text.replace('amp;', '')
+        paras.append(html.P(
+            className='card-text',
+            children=text
+        ))
+    sample_tweets[date] = paras
+
 
 df_count = {}
 df_new = {}
@@ -31,15 +69,9 @@ for year in range(2014, 2019):
         count_smoothed[str(year)] = gaussian_filter1d(df['count'], sigma=3)
 
     marker = []
-    for _, row in df.iterrows():
-        if row['date'] == '20140928':
-            marker.append(36)
-        elif row['date'] == '20141125':
-            marker.append(84)
-        elif row['date'] == '20181112':
-            marker.append(249)
-        elif row['date'] == '20181123':
-            marker.append(260)
+    for i, row in df.iterrows():
+        if row['date'] in list(events_df.index):
+            marker.append(count_smoothed[str(year)][i])
         else:
             marker.append(None)
 
@@ -51,8 +83,6 @@ for year in range(2014, 2019):
 conn.close()
 
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-
 color_for_year = {
     '2014': '#800000',
     '2015': '#FF5733',
@@ -61,152 +91,163 @@ color_for_year = {
     '2018': '#7D3C98'
 }
 
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
-app.layout = html.Div(children=[
-    html.Span(
-        children=[
-            html.Button(
-                id='btn-line',
-                n_clicks=0,
-                style={},
-                children='Line'
-            ),
-            html.Button(
-                id='btn-bar',
-                n_clicks=0,
-                style={},
-                children='Bar'
-            )
-        ]
-    ),
-    html.Div(
-        children=[
-            html.Div(
-                style={
-                    'width': '7%',
-                    'float': 'left',
-                    'margin-top': "7%"
-                },
-                children=[
-                    html.Button(id='btn-2014', n_clicks=0, children='2014', style={
-                        'width': '90px'
-                    }),
-                    html.Button(id='btn-2015', n_clicks=0,  children='2015', style={
-                        'margin-top': '20px',
-                        'width': '90px'
-                    }),
-                    html.Button(id='btn-2016', n_clicks=0,  children='2016', style={
-                        'margin-top': '20px',
-                        'width': '90px'
-                    }),
-                    html.Button(id='btn-2017', n_clicks=0,children='2017', style={
-                        'margin-top': '20px',
-                        'width': '90px'
-                    }),
-                    html.Button(id='btn-2018', n_clicks=0,children='2018', style={
-                        'margin-top': '20px',
-                        'width': '90px'
-                    }),
-                    html.Button(
-                        id='btn-all',
-                        n_clicks=0,
-                        children='All',
-                        style={
-                            'margin-top': '20px',
-                            'width': '90px'
-                    })
-                ]
-            ),
+app = dash.Dash(__name__)
 
-            html.Div(
-                style={
-                    'float': 'left',
-                    'margin-left': '8px',
-                    'width': '75%'
-                },
-                children=[
-                    dcc.Graph(
-                        id='graph',
-                        config=dict(displayModeBar=False),
-                        figure={}
-                    )
-                ]
-            ),
-
-            html.Div(
-                style={
-                    'float': 'right',
-                    'width': '17%',
-                    'height': '500px',
-                    'border': '1px solid #A6ACAF',
-                    'border-radius': 10
-                },
-                children=[
-                    html.Div(
-                        style={
-                            'margin': '2%',
-                            'height': '40%',
-                            'border-bottom': '1px solid #A6ACAF',
-                            'overflow-x': 'hidden',
-                            'overflow-y': 'scroll'
-                        },
-                        children=[
-                            html.Span(
-                                children=[
-                                    html.Label(
-                                        style={'float': 'left', 'font-weight': 'bold'},
-                                        children='Date:'
-                                    ),
-                                    html.Label(
-                                        id='date-label',
-                                        style={
-                                            'position': 'relative',
-                                            'left': '10px',
-                                            'font-weight': 'bold'
-                                        },
-                                        children=''
-                                    )
-                                ]
-                            ),
-                            html.P(
-                                id='event-text',
-                                style={
-                                    'margin-top': '10px'
-                                },
-                                children=''
-                            )
-                        ]
-                    ),
-
-                    html.Div(
-                        style={
-                            'margin': '2%',
-                            'height': '55%',
-                            'overflow-y': 'scroll'
-                        },
-                        children=[
-                            html.Label(
-                                style={'font-weight': 'bold'},
-                                children='Sample Tweets:'
-                            ),
-
-                            html.P(
-                                id='sample-text',
-                                style={
-                                    'margin-top': '10px'
-                                },
-                                children=''
-                            )
-                        ]
-                    )
-                ]
-            )
-        ]
-    )
-])
-
-month_labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+app.layout = html.Div(
+    className='container-fluid',
+    style={'padding-top': '15px', 'margin-top': 'auto'},
+    children=[
+        html.Div(
+            className='row',
+            style={'height': '97vh'},
+            children=[
+                html.Div(
+                    className='col-1',
+                    style={'margin-top': '9%'},
+                    children=[
+                        html.Div(
+                            className='btn-group-vertical',
+                            children=[
+                                html.Button(
+                                    type='button',
+                                    className='btn btn-primary',
+                                    id='btn-2014',
+                                    n_clicks=0,
+                                    children='2014'
+                                ),
+                                html.Button(
+                                    type='button',
+                                    className='btn btn-primary',
+                                    id='btn-2015',
+                                    n_clicks=0,
+                                    children='2015'
+                                ),
+                                html.Button(
+                                    type='button',
+                                    className='btn btn-primary',
+                                    id='btn-2016',
+                                    n_clicks=0,
+                                    children='2016'
+                                ),
+                                html.Button(
+                                    type='button',
+                                    className='btn btn-primary',
+                                    id='btn-2017',
+                                    n_clicks=0,
+                                    children='2017'
+                                ),
+                                html.Button(
+                                    type='button',
+                                    className='btn btn-primary',
+                                    id='btn-2018',
+                                    n_clicks=0,
+                                    children='2018'
+                                ),
+                                html.Button(
+                                    type='button',
+                                    className='btn btn-info',
+                                    id='btn-all',
+                                    n_clicks=0,
+                                    children='All Years'
+                                )
+                            ]
+                        )
+                    ]
+                ),
+                html.Div(
+                    className='col-8',
+                    children=[
+                        html.Div(
+                            className='row',
+                            children=[
+                                html.Div(
+                                    className='btn-group btn-group-toggle',
+                                    style={'margin-left': '7.5%'},
+                                    children=[
+                                        html.Button(
+                                            id='btn-line',
+                                            n_clicks=0,
+                                            className='btn btn-primary active',
+                                            children='Line'
+                                        ),
+                                        html.Button(
+                                            id='btn-bar',
+                                            n_clicks=0,
+                                            className='btn btn-warning',
+                                            children='Bar'
+                                        )
+                                    ]
+                                )
+                            ]
+                        ),
+                        html.Div(
+                            className='row',
+                            children=[
+                                dcc.Graph(
+                                    id='graph',
+                                    config=dict(displayModeBar=False),
+                                    style={
+                                      'height': '100vh',
+                                      'width': '100%'
+                                    },
+                                    figure={}
+                                )
+                            ]
+                        )
+                    ]
+                ),
+                html.Div(
+                    className='col-3',
+                    children=[
+                        html.Div(
+                            className='card text-white bg-primary mb-3',
+                            style={'height': '40vh'},
+                            children=[
+                                html.Div(
+                                    className='card-header',
+                                    children='Event'
+                                ),
+                                html.Div(
+                                    className='card-body',
+                                    style={'overflow-y': 'scroll'},
+                                    children=[
+                                        html.H4(
+                                            id='date',
+                                            className='card-title',
+                                            children=''
+                                        ),
+                                        html.Div(
+                                            id='event-text',
+                                            className='card-text',
+                                            children=''
+                                        )
+                                    ]
+                                )
+                            ]
+                        ),
+                        html.Div(
+                            className='card text-white bg-primary mb-3',
+                            style={'height': '51vh'},
+                            children=[
+                                html.Div(
+                                    className='card-header',
+                                    children='Sample Tweets'
+                                ),
+                                html.Div(
+                                    id='tweets-div',
+                                    style={'overflow-y': 'scroll'},
+                                    className='card-body',
+                                    children=[]
+                                )
+                            ]
+                        )
+                    ]
+                )
+            ]
+        )
+    ]
+)
 
 
 def transform_date(d):
@@ -222,19 +263,21 @@ for year in range(2014, 2019):
     comparison_data.append(go.Scatter(
         x=df['date'],
         y=count_smoothed[str(year)],
-        fill='tozeroy',
+        mode='lines',
+        stackgroup=str(year),
         name=str(year)
     ))
 comparison_graph = {
     'data': comparison_data,
     'layout': dict(
         title='2014-2018 Comparison',
-        height=550,
+        # height='100%',
         xaxis=dict(
             rangeslider=dict(
                 visible=True
             )
-        )
+        ),
+        font=dict(family='Montserrat')
     )
 }
 
@@ -242,10 +285,10 @@ comparison_graph = {
 def get_layout(year):
     return {
         'title': year,
-        'height': 550,
+        # 'height': '100%',
+        'font': dict(family='Montserrat'),
         'xaxis': dict(
             rangeselector=dict(
-                # Adjust date range - 7 days, 14 days, all days
                 buttons=list([
                     dict(count=1,
                          label='1m',
@@ -439,7 +482,7 @@ def update_graph(
 
 
 @app.callback(
-    dash.dependencies.Output('btn-line', 'style'),
+    dash.dependencies.Output('btn-line', 'className'),
     [dash.dependencies.Input('btn-line', 'n_clicks'),
      dash.dependencies.Input('btn-bar', 'n_clicks')]
 )
@@ -447,30 +490,18 @@ def update_line_btn(n_clicks_line, n_clicks_bar):
     global previous_n_clicks_line_for_update_line
     global previous_n_clicks_bar_for_update_line
     if n_clicks_line == 0 and n_clicks_bar == 0:
-        return {
-            'margin-left': '13%',
-            'width': '90px',
-            'background-color': '#5DADE2'
-        }
+        return 'btn btn-primary active'
     else:
         if n_clicks_line > previous_n_clicks_line_for_update_line:
             previous_n_clicks_line_for_update_line = n_clicks_line
-            return {
-                'margin-left': '13%',
-                'width': '90px',
-                'background-color': '#5DADE2'
-            }
+            return 'btn btn-primary active'
         else:
             previous_n_clicks_bar_for_update_line = n_clicks_bar
-            return {
-                'margin-left': '13%',
-                'width': '90px',
-                'background-color': 'white'
-            }
+            return 'btn btn-primary'
 
 
 @app.callback(
-    dash.dependencies.Output('btn-bar', 'style'),
+    dash.dependencies.Output('btn-bar', 'className'),
     [dash.dependencies.Input('btn-line', 'n_clicks'),
      dash.dependencies.Input('btn-bar', 'n_clicks')]
 )
@@ -478,30 +509,18 @@ def update_line_btn(n_clicks_line, n_clicks_bar):
     global previous_n_clicks_line_for_update_bar
     global previous_n_clicks_bar_for_update_bar
     if n_clicks_line == 0 and n_clicks_bar == 0:
-        return {
-            'margin-left': 0,
-            'width': '90px',
-            'background-color': 'white'
-        }
+        return 'btn btn-primary'
     else:
         if n_clicks_line > previous_n_clicks_line_for_update_bar:
             previous_n_clicks_line_for_update_bar = n_clicks_line
-            return {
-                'margin-left': 0,
-                'width': '90px',
-                'background-color': 'white'
-            }
+            return 'btn btn-primary'
         else:
             previous_n_clicks_bar_for_update_bar = n_clicks_bar
-            return {
-                'margin-left': 0,
-                'width': '90px',
-                'background-color': '#5DADE2'
-            }
+            return 'btn btn-primary active'
 
 
 @app.callback(
-    dash.dependencies.Output('date-label', 'children'),
+    dash.dependencies.Output('date', 'children'),
     [dash.dependencies.Input('graph', 'clickData')])
 def display_click_data(click_data):
     if not click_data:
@@ -516,58 +535,22 @@ def display_click_data(click_data):
 def display_click_data(click_data):
     if not click_data:
         return ''
-    dt = click_data['points'][0]['x']
-    if dt == '2014-09-28':
-        return 'There was news about the Royal Women’s setting up a program, a taskforce in \
-        Queensland, and an NFL commissioner talking about a hotline.'
-    elif dt == '2014-11-25':
-        return [
-            html.P('1. National walk against family violence event.'),
-            html.P('2. Tony Abbott news about how he hit the wall beside a woman to intimidate her.')
-        ]
-    elif dt == '2018-11-12':
-        return 'Something happened today'
-    elif dt == '2018-11-23':
-        return 'Some other things happened today'
+    dt = click_data['points'][0]['x'].replace('-', '')
+    if dt in list(events_df.index):
+        return events_df.loc[dt]['event']
     else:
         return ''
 
 
 @app.callback(
-    dash.dependencies.Output('sample-text', 'children'),
+    dash.dependencies.Output('tweets-div', 'children'),
     [dash.dependencies.Input('graph', 'clickData')])
 def display_click_data(click_data):
     if not click_data:
         return ''
-    dt = click_data['points'][0]['x']
-    if dt == '2014-09-28':
-        return [
-            html.P("1. Don't get distracted worrying bout Muslims who are JUST PEOPLE worry that 1 woman a week is \
-            killed thru domestic violence every week in Oz."),
-            html.P("2. \"Don't be a bystander & take any opportunity to (ask) 'Are you OK?'\" urges Quentin Bryce \
-            on #domesticviolence: http://t.co/GSTCN7CXsp"),
-            html.P("3. Royal Women's Hospital service offering legal advice to #domestic #violence victims could expand\
-             http://t.co/PhXULdYZlH #NoToVAW"),
-            html.P("4. Great article highlighting our work w/ @thewomens supporting women experiencing domestic viole\
-            nce & training staff http://t.co/1Jbhm7tgTY"),
-            html.P("5. Queensland taskforce 'gravely worried' about domestic violence severity http://t.co/AeObieIbQN")
-        ]
-    elif dt == '2014-11-25':
-        return [
-            html.P("1. One woman a week dies from domestic violence in Australia. Appalling. #theprojecttv"),
-            html.P("2. Infographic: domestic violence in Aust. #WhiteRibbonDay https://t.co/ggDxi4Mm0G http://t.co/i2Z\
-            slGVqBO"),
-            html.P("3. Men: it's #WhiteRibbonDay - have you taken the oath against domestic violence yet? http://t.co/\
-            SJbVP4FmsF http://t.co/3FCsqgjRcn"),
-            html.P("4. On #WhiteRibbonDay, we look at the invaluable work of @AssistASista in helping domestic violenc\
-            e survivors rebuild their lives #theprojecttv"),
-            html.P("5. It's #WhiteRibbonDay & we're proud to recognise @RosieBatty1 & her inspirational campai\
-            gn against domestic violence. http://t.co/VCOQDr2SyV")
-        ]
-    elif dt == '2018-11-12':
-        return 'Something sample tweets'
-    elif dt == '2018-11-23':
-        return 'Some other tweets'
+    dt = click_data['points'][0]['x'].replace('-', '')
+    if dt in list(events_df.index):
+        return sample_tweets[dt]
     else:
         return ''
 
