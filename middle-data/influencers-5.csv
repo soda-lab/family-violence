@@ -1,0 +1,51 @@
+,year,type,handler,count,name
+0,2014,org,@abcnews,418,ABC News
+1,2014,org,@whiteribbonaust,74,White Ribbon
+2,2014,org,@qanda,39,ABC Q&A
+3,2014,org,@thetodayshow,39,The Today Show
+4,2014,org,@theage,23,The Age
+10,2014,per,@buzzrothfield,22,Phil Rothfield (sports journalist)
+11,2014,per,@tonyabbottmhr,19,Tony Abbott
+12,2014,per,@charliepick,18,Charlie Pickering (host)
+13,2014,per,@danielandrewsmp,16,Dan Andrews (MP)
+14,2014,per,@rosiebatty,11,Rosie Batty
+20,2015,org,@abcnews,705,ABC News
+21,2015,org,@theage,210,The Age
+22,2015,org,@changeaus,200,Change.org
+23,2015,org,@smh,183,Sydney Morning Herald
+24,2015,org,@qanda,182,ABC Q&A
+30,2015,per,@rosiebatty,320,Rosie Batty
+31,2015,per,@turnbullmalcolm,89,Malcolm Turnbull
+32,2015,per,@tonyabbottmhr,57,Tony Abbott
+33,2015,per,@annastaciamp,43,Annastacia Palaszczuk (MP)
+34,2015,per,@johnmcaldwell,42,John Caldwell (reporter)
+40,2016,org,@abcnews,723,ABC News
+41,2016,org,@smh,302,Sydney Morning Herald
+42,2016,org,@theage,207,The Age
+43,2016,org,@conversationedu,176,The Conversation (news analysis)
+44,2016,org,@changeaus,168,Change.org
+50,2016,per,@rosiebatty,164,Rosie Batty
+51,2016,per,@danielandrewsmp,110,Dan Andrews (MP)
+52,2016,per,@turnbullmalcolm,105,Malcolm Turnbull
+53,2016,per,@senatorcash,53,Michaelia Cash (minister)
+54,2016,per,@frichardsonmp,39,Fiona Richardson (MP)
+60,2017,org,@abcnews,850,ABC News
+61,2017,org,@smh,192,Sydney Morning Herald
+62,2017,org,@dailylifeau,177,Daily Life
+63,2017,org,@changeaus,145,Change.org
+64,2017,org,@skinnergj,142,Dougy's Daily Digest
+70,2017,per,@bairdjulia,155,Dr Julia Baird (journalist)
+71,2017,per,@turnbullmalcolm,128,Malcolm Turnbull
+72,2017,per,@paulinehansonoz,116,Pauline Hanson (politician)
+73,2017,per,@danielandrewsmp,85,Dan Andrews (MP)
+74,2017,per,@rosiebatty,81,Rosie Batty
+80,2018,org,@abcnews,861,ABC News
+81,2018,org,@skynewsaust,179,Sky News
+82,2018,org,@theage,171,The Age
+83,2018,org,@smh,147,Sydney Morning Herald
+84,2018,org,@whiteribbonaust,119,White Ribbon
+90,2018,per,@scottmorrisonmp,299,Scott Morrison
+91,2018,per,@danielandrewsmp,149,Dan Andrews (MP)
+92,2018,per,@turnbullmalcolm,117,Malcolm Turnbull
+93,2018,per,@bairdjulia,99,Dr Julia Baird (journalist)
+94,2018,per,@lyleshelton,91,Lyle Shelton (lobbyist)
