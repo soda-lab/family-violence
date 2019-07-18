@@ -29,7 +29,7 @@ def get_query(dt):
         ORDER BY retweet_count+reply_count DESC LIMIT 5'
 
 
-conn = sqlite3.connect('dpc.db')
+conn = sqlite3.connect('../dpc.db')
 
 
 sample_tweets = {}
